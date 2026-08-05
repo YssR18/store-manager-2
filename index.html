@@ -4,28 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>نظام إدارة المحل والمخزون المتقدم</title>
-  
-  <!-- PWA & Fullscreen Meta Tags -->
+
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#2563eb">
-  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22%D9%85%D8%AF%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%AD%D9%8D%D9%84%22,%22short_name%22:%22%D8%A7%D9%84%D9%85%D8%AD%D9%84%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#0f172a%22,%22theme_color%22:%22#2563eb%22}">
   
-  <!-- Google Fonts & FontAwesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Chart.js for Visual Analytics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     :root {
       --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --accent: #f59e0b;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #0f172a;
@@ -36,7 +28,7 @@
       --warning: #f59e0b;
       --danger: #ef4444;
       --purple: #8b5cf6;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       --radius: 12px;
     }
 
@@ -47,493 +39,155 @@
       --text-muted: #94a3b8;
       --border: #334155;
       --table-header: #1e293b;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     }
 
-    * {
-      box-sizing: border-box;
-      font-family: 'Tajawal', sans-serif;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      transition: background-color 0.3s, color 0.3s;
-      padding-bottom: 70px;
-    }
+    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
 
     .app-header {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 18px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow);
+      background: var(--card-bg); border-bottom: 1px solid var(--border);
+      padding: 12px 18px; position: sticky; top: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
     }
 
-    .app-title {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .app-title { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .header-actions { display: flex; gap: 8px; }
 
     .icon-btn {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s;
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
 
-    .icon-btn:active {
-      transform: scale(0.92);
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 15px auto;
-      padding: 0 12px;
-    }
+    .container { max-width: 1100px; margin: 15px auto; padding: 0 12px; }
 
     /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: var(--card-bg);
-      padding: 14px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .stat-card .title {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .stat-card .val {
-      font-size: 1.25rem;
-      font-weight: 800;
-    }
-
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--card-bg); padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+    .stat-card .title { font-size: 0.82rem; color: var(--text-muted); }
+    .stat-card .val { font-size: 1.25rem; font-weight: 800; }
     .stat-card.sales .val { color: var(--primary); }
     .stat-card.profit .val { color: var(--success); }
-    .stat-card.stock .val { color: var(--warning); }
 
-    /* Navigation Tabs */
-    .nav-tabs {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      margin-bottom: 15px;
-      border-bottom: 2px solid var(--border);
-      scrollbar-width: none;
-    }
-    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid var(--border); }
+    .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px 16px; font-weight: 700; cursor: pointer; }
+    .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: var(--card-bg); }
 
-    .tab-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      padding: 10px 16px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom: 3px solid var(--primary);
-      background: var(--card-bg);
-    }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 200px; position: relative; }
+    .search-box input { width: 100%; padding: 10px 38px 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card-bg); color: var(--text); }
+    .search-box i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; justify-content: space-between; }
+    .product-card .p-name { font-size: 0.95rem; font-weight: 700; }
+    .product-card .p-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin: 6px 0; }
 
-    /* Filters & Search Toolbar */
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 15px;
-      align-items: center;
-    }
-
-    .search-box {
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 10px 38px 10px 12px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-    }
-
-    .search-box i {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-    }
-
-    .filter-tags {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      width: 100%;
-      padding-bottom: 4px;
-    }
-
-    .tag-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .tag-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-
-    /* Grid / Card View for Products */
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
-
-    .product-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .product-card .p-name {
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .product-card .p-price {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .product-card .p-stock-info {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    /* Badges */
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; display: inline-block; }
     .badge-success { background: #d1fae5; color: #065f46; }
     .badge-warning { background: #fef3c7; color: #92400e; }
     .badge-danger { background: #fee2e2; color: #991b1b; }
 
-    /* Tables */
-    .table-responsive {
-      overflow-x: auto;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-    }
+    tr.low-stock { background-color: #fee2e2 !important; color: #991b1b; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: right;
-      font-size: 0.88rem;
-    }
+    .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.88rem; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: center; }
+    th { background: var(--table-header); color: var(--text-muted); }
 
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      background: var(--table-header);
-      color: var(--text-muted);
-      font-weight: 700;
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-
+    .btn { padding: 8px 14px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:active { background: var(--primary-hover); }
     .btn-success { background: var(--success); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-purple { background: var(--purple); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-sm { padding: 4px 8px; font-size: 0.78rem; }
 
-    /* Forms */
-    .form-group { margin-bottom: 12px; }
-    .form-group label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-      color: var(--text-muted);
-    }
-    .form-group input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-    }
+    .form-group { margin-bottom: 12px; text-align: right; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); }
 
-    /* Calculator Box */
-    .calculator-box {
-      background: var(--bg);
-      padding: 12px;
-      border-radius: var(--radius);
-      border: 1px dashed var(--primary);
-      margin-top: 10px;
-    }
-    .calculator-box .change-result {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--success);
-      margin-top: 6px;
-    }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center; padding: 15px; }
+    .modal-content { background: var(--card-bg); padding: 20px; border-radius: var(--radius); width: 100%; max-width: 420px; }
 
-    /* Charts Container */
-    .chart-container {
-      background: var(--card-bg);
-      padding: 15px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      margin-top: 15px;
-      box-shadow: var(--shadow);
-    }
-
-    /* Toast Notification */
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #1e293b;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-weight: 600;
-      font-size: 0.88rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 10px 20px; border-radius: 25px; font-weight: 600; z-index: 1000; transition: transform 0.3s; }
     #toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* Modals */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 500;
-      align-items: center;
-      justify-content: center;
-      padding: 15px;
-    }
-    .modal-content {
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 450px;
-      max-height: 90vh;
-      overflow-y: auto;
+    @media print {
+      .app-header, .nav-tabs, .toolbar, button, .modal { display: none !important; }
+      body { background: white; color: black; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
   <header class="app-header">
     <div class="app-title">
       <i class="fa-solid fa-store"></i>
       <span>مدير المحل والمخزون</span>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="syncData()" title="مزامنة"><i class="fa-solid fa-rotate"></i></button>
-      <button class="icon-btn" onclick="toggleDarkMode()" title="المظهر"><i class="fa-solid fa-moon"></i></button>
-      <button class="icon-btn" onclick="openSettings()" title="الإعدادات"><i class="fa-solid fa-gear"></i></button>
+      <button class="icon-btn" onclick="syncWithCloud()" title="مزامنة فورية"><i class="fa-solid fa-rotate"></i></button>
+      <button class="icon-btn" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i></button>
+      <button class="icon-btn" onclick="openModal('settingsModal')"><i class="fa-solid fa-gear"></i></button>
     </div>
   </header>
 
   <div class="container">
 
-    <!-- KPI Dashboard Cards -->
     <div class="stats-grid">
       <div class="stat-card sales">
-        <span class="title"><i class="fa-solid fa-cart-shopping"></i> مبيعات اليوم</span>
-        <span class="val" id="statTodaySales">0 د.ج</span>
+        <span class="title">مداخيل المبيعات اليومية</span>
+        <span class="val" id="todaySalesVal">0.00 د.ج</span>
       </div>
       <div class="stat-card profit">
-        <span class="title"><i class="fa-solid fa-chart-line"></i> أرباح اليوم</span>
-        <span class="val" id="statTodayProfit">0 د.ج</span>
-      </div>
-      <div class="stat-card stock">
-        <span class="title"><i class="fa-solid fa-boxes-stacked"></i> تنبيه المخزون</span>
-        <span class="val" id="statLowStock">0 منتج</span>
+        <span class="title">صافي أرباح اليوم التقديرية</span>
+        <span class="val" id="todayProfitVal">0.00 د.ج</span>
       </div>
     </div>
 
-    <!-- Main Navigation Tabs -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('pos')"><i class="fa-solid fa-cash-register"></i> نقطة البيع</button>
       <button class="tab-btn" onclick="switchTab('stock')"><i class="fa-solid fa-boxes-packing"></i> إدارة المخزون</button>
-      <button class="tab-btn" onclick="switchTab('reports')"><i class="fa-solid fa-chart-pie"></i> التقارير والرسوم</button>
+      <button class="tab-btn" onclick="switchTab('sales-history')"><i class="fa-solid fa-receipt"></i> سجل المبيعات</button>
     </div>
 
-    <!-- TAB 1: POS / Sales Window -->
+    <!-- TAB 1: POS -->
     <div id="tab-pos" class="tab-content active">
       <div class="toolbar">
         <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="posSearch" placeholder="بحث عن منتج..." oninput="filterPOS()">
-        </div>
-        <div class="filter-tags" id="posCategoryTags">
-          <button class="tag-btn active" onclick="filterPOSCategory('all')">الكل</button>
+          <i class="fa-solid fa-barcode"></i>
+          <input type="text" id="barcodeScanner" placeholder="📷 مسح الباركود أو البحث..." oninput="handleBarcode(this.value)">
         </div>
       </div>
-
       <div class="product-grid" id="posProductGrid"></div>
-
-      <!-- Quick Change Calculator -->
-      <div class="calculator-box">
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <div class="form-group" style="flex: 1; margin: 0;">
-            <label><i class="fa-solid fa-hand-holding-dollar"></i> المبلغ المستلم من الزبون (د.ج):</label>
-            <input type="number" id="cashReceived" placeholder="مثال: 2000" oninput="calculateChange()">
-          </div>
-          <div class="form-group" style="flex: 1; margin: 0;">
-            <label><i class="fa-solid fa-receipt"></i> إجمالي الفاتورة:</label>
-            <input type="number" id="currentBillTotal" value="0" readonly>
-          </div>
-        </div>
-        <div class="change-result" id="changeAmountText">الباقي للزبون: 0 د.ج</div>
-      </div>
     </div>
 
-    <!-- TAB 2: Inventory Management -->
+    <!-- TAB 2: Stock -->
     <div id="tab-stock" class="tab-content">
       <div class="toolbar">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="stockSearch" placeholder="بحث في المخزون..." oninput="renderStockTable()">
+          <input type="text" id="stockSearch" placeholder="🔍 بحث باسم السلعة أو النوع..." oninput="renderStockTable()">
         </div>
-        <button class="btn btn-primary" onclick="openAddProductModal()"><i class="fa-solid fa-plus"></i> إضافة منتج جديد</button>
+        <button class="btn btn-primary" onclick="openModal('addProductModal')"><i class="fa-solid fa-plus"></i> إضافة سلعة</button>
+        <button class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
       </div>
 
       <div class="table-responsive">
         <table>
           <thead>
             <tr>
-              <th>المنتج</th>
-              <th>الفئة</th>
+              <th>اسم المنتج</th>
+              <th>النوع</th>
+              <th>في المحل</th>
+              <th>في المخزن</th>
               <th>سعر الشراء</th>
               <th>سعر البيع</th>
-              <th>المحل</th>
-              <th>المخزن</th>
-              <th>الحالة</th>
-              <th>إجراءات</th>
+              <th>خيارات النقل بين المحل والمخزن</th>
             </tr>
           </thead>
           <tbody id="stockTableBody"></tbody>
@@ -541,15 +195,25 @@
       </div>
     </div>
 
-    <!-- TAB 3: Reports & Visual Analytics -->
-    <div id="tab-reports" class="tab-content">
-      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button class="btn btn-outline" onclick="exportDataBackup()"><i class="fa-solid fa-file-export"></i> تصدير نسخة احتياطية (JSON)</button>
+    <!-- TAB 3: Sales History -->
+    <div id="tab-sales-history" class="tab-content">
+      <div class="toolbar">
+        <button class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة تقرير المبيعات</button>
       </div>
-
-      <div class="chart-container">
-        <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-chart-column"></i> أداء المبيعات (الأيام السبعة الأخيرة)</h3>
-        <canvas id="salesChart" height="200"></canvas>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الكمية المباعة</th>
+              <th>الإجمالي</th>
+              <th>الربح</th>
+              <th>التاريخ والوقت</th>
+              <th>إلغاء الحركة</th>
+            </tr>
+          </thead>
+          <tbody id="salesHistoryBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -558,23 +222,23 @@
   <!-- Add Product Modal -->
   <div class="modal" id="addProductModal">
     <div class="modal-content">
-      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-box"></i> إضافة / تعديل منتج</h3>
+      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-box"></i> إضافة / تحديث سلعة</h3>
       <div class="form-group">
         <label>اسم المنتج</label>
-        <input type="text" id="mName">
+        <input type="text" id="mName" required>
       </div>
       <div class="form-group">
-        <label>الفئة / المجموعة</label>
-        <input type="text" id="mCategory" placeholder="مثال: ملابس، إلكترونيات...">
+        <label>النوع / الفئة</label>
+        <input type="text" id="mCategory" placeholder="مثال: ألبسة">
       </div>
       <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex: 1;">
           <label>سعر الشراء (د.ج)</label>
-          <input type="number" id="mBuyPrice">
+          <input type="number" id="mBuyPrice" placeholder="0.00">
         </div>
         <div class="form-group" style="flex: 1;">
           <label>سعر البيع (د.ج)</label>
-          <input type="number" id="mSellPrice">
+          <input type="number" id="mSellPrice" placeholder="0.00">
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
@@ -587,9 +251,31 @@
           <input type="number" id="mStoreQty" value="0">
         </div>
       </div>
+      <div class="form-group">
+        <label>الباركود (اختياري)</label>
+        <input type="text" id="mBarcode">
+      </div>
       <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="btn btn-primary" style="flex: 1;" onclick="saveProductModal()">حفظ المنتج</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="saveProduct()">حفظ السلعة</button>
         <button class="btn btn-outline" onclick="closeModal('addProductModal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer Stock Modal -->
+  <div class="modal" id="transferModal">
+    <div class="modal-content">
+      <h3 id="transferModalTitle" style="margin-bottom: 15px;"><i class="fa-solid fa-truck-ramp-box"></i> نقل السلع</h3>
+      <input type="hidden" id="transProductName">
+      <input type="hidden" id="transDirection">
+      <div class="form-group">
+        <label>الكمية المراد نقلها:</label>
+        <input type="number" id="transQty" min="1" value="1">
+        <small id="transMaxQtyHelp" style="color: var(--text-muted);"></small>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn btn-primary" style="flex: 1;" onclick="confirmTransfer()">تأكيد النقل</button>
+        <button class="btn btn-outline" onclick="closeModal('transferModal')">إلغاء</button>
       </div>
     </div>
   </div>
@@ -597,38 +283,34 @@
   <!-- Settings Modal -->
   <div class="modal" id="settingsModal">
     <div class="modal-content">
-      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> إعدادات الربط والـ API</h3>
+      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> ربط الـ API</h3>
       <div class="form-group">
-        <label>رابط Google Apps Script Web App API:</label>
-        <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+        <label>رابط Google Apps Script:</label>
+        <input type="text" id="apiUrlInput" placeholder="ضع رابط الخدمة السحابية هنا">
       </div>
       <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="btn btn-primary" style="flex: 1;" onclick="saveSettings()">حفظ الرابط</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="saveApiUrl()">حفظ المزامنة</button>
         <button class="btn btn-outline" onclick="closeModal('settingsModal')">إغلاق</button>
       </div>
     </div>
   </div>
 
-  <!-- Notification Toast -->
   <div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">تمت العملية بنجاح</span></div>
 
   <script>
-    let products = JSON.parse(localStorage.getItem('store_products')) || [
-      { id: 1, name: 'قميص رجالي', category: 'ألبسة', buyPrice: 1200, sellPrice: 1800, shopQty: 8, storeQty: 25 },
-      { id: 2, name: 'سماعات بلوتوث', category: 'إلكترونيات', buyPrice: 2500, sellPrice: 3500, shopQty: 2, storeQty: 5 },
-      { id: 3, name: 'حذاء رياضي', category: 'أحذية', buyPrice: 3000, sellPrice: 4200, shopQty: 0, storeQty: 10 }
-    ];
-
-    let activePOSCategory = 'all';
-    let myChart = null;
+    let db = { inventory: [], sales: [] };
 
     window.onload = function() {
-      renderPOSCategories();
-      renderPOSProducts();
-      renderStockTable();
-      calculateKPIs();
-      initChart();
-      loadApiUrl();
+      const savedLocal = localStorage.getItem('app_db_data');
+      if (savedLocal) {
+        db = JSON.parse(savedLocal);
+        renderAll();
+      }
+      const url = localStorage.getItem('app_api_url');
+      if (url) {
+        document.getElementById('apiUrlInput').value = url;
+        syncWithCloud();
+      }
     };
 
     function showToast(msg) {
@@ -640,229 +322,243 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
-      const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('dark_mode', isDark);
-      showToast(isDark ? 'تم تفعيل الوضع الليلي 🌙' : 'تم تفعيل الوضع النهاري ☀️');
     }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
       event.currentTarget.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
-      
-      if(tabId === 'reports') updateChart();
     }
 
-    function renderPOSCategories() {
-      const categories = ['all', ...new Set(products.map(p => p.category || 'عام'))];
-      const container = document.getElementById('posCategoryTags');
-      container.innerHTML = categories.map(cat => `
-        <button class="tag-btn ${activePOSCategory === cat ? 'active' : ''}" onclick="filterPOSCategory('${cat}')">
-          ${cat === 'all' ? 'الكل' : cat}
-        </button>
+    function saveLocal() {
+      localStorage.setItem('app_db_data', JSON.stringify(db));
+      renderAll();
+    }
+
+    function renderAll() {
+      renderPOS();
+      renderStockTable();
+      renderSalesHistory();
+      calculateStats();
+    }
+
+    function renderPOS() {
+      const query = document.getElementById('barcodeScanner').value.toLowerCase();
+      const grid = document.getElementById('posProductGrid');
+      const filtered = db.inventory.filter(p => p.name.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query)));
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="product-card">
+          <div>
+            <div class="p-name">${p.name}</div>
+            <div class="p-price">${p.sellPrice} د.ج</div>
+            <div style="font-size:0.8rem; color:var(--text-muted)">المحل: <b>${p.shopQty}</b> | المخزن: <b>${p.storeQty}</b></div>
+          </div>
+          <button class="btn btn-success btn-sm" style="margin-top:8px" onclick="makeSale('${p.name}')" ${p.shopQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>
+            <i class="fa-solid fa-cart-plus"></i> بيع
+          </button>
+        </div>
       `).join('');
     }
 
-    function filterPOSCategory(cat) {
-      activePOSCategory = cat;
-      renderPOSCategories();
-      renderPOSProducts();
-    }
-
-    function renderPOSProducts() {
-      const query = document.getElementById('posSearch').value.toLowerCase();
-      const grid = document.getElementById('posProductGrid');
-      
-      const filtered = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query));
-        const matchesCategory = activePOSCategory === 'all' || p.category === activePOSCategory;
-        return matchesSearch && matchesCategory;
-      });
-
-      if(filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:30px; color:var(--text-muted)">لا توجد منتجات مطابقة</div>`;
-        return;
-      }
-
-      grid.innerHTML = filtered.map(p => {
-        let badgeClass = 'badge-success';
-        let badgeText = 'متوفر';
-        if(p.shopQty === 0) { badgeClass = 'badge-danger'; badgeText = 'منتهي في المحل'; }
-        else if(p.shopQty <= 3) { badgeClass = 'badge-warning'; badgeText = 'قريب من النفاذ'; }
-
-        return `
-          <div class="product-card">
-            <div>
-              <div class="p-name">${p.name}</div>
-              <div class="p-price">${p.sellPrice} د.ج</div>
-              <div class="p-stock-info">
-                <span>المحل: <b>${p.shopQty}</b></span>
-                <span class="badge ${badgeClass}">${badgeText}</span>
-              </div>
-            </div>
-            <button class="btn btn-success btn-sm" onclick="quickSell(${p.id})" ${p.shopQty === 0 ? 'disabled style="opacity:0.5"' : ''}>
-              <i class="fa-solid fa-cart-plus"></i> بيع قطعة
-            </button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function filterPOS() { renderPOSProducts(); }
-
-    function quickSell(id) {
-      const prod = products.find(p => p.id === id);
-      if(prod && prod.shopQty > 0) {
-        prod.shopQty--;
-        saveProductsLocal();
-        renderPOSProducts();
-        renderStockTable();
-        calculateKPIs();
-        showToast(`تم بيع 1x (${prod.name}) بنجاح 🟢`);
-        document.getElementById('currentBillTotal').value = prod.sellPrice;
-        calculateChange();
-      }
-    }
-
-    function calculateChange() {
-      const bill = parseFloat(document.getElementById('currentBillTotal').value) || 0;
-      const cash = parseFloat(document.getElementById('cashReceived').value) || 0;
-      const change = cash - bill;
-      const resElem = document.getElementById('changeAmountText');
-      
-      if(cash > 0 && change >= 0) {
-        resElem.innerText = `الباقي للزبون: ${change} د.ج`;
-        resElem.style.color = 'var(--success)';
-      } else if(cash > 0 && change < 0) {
-        resElem.innerText = `المبلغ ناقص بـ: ${Math.abs(change)} د.ج`;
-        resElem.style.color = 'var(--danger)';
+    function handleBarcode(val) {
+      if (!val) { renderPOS(); return; }
+      const item = db.inventory.find(p => p.barcode && p.barcode === val.trim());
+      if (item) {
+        makeSale(item.name);
+        document.getElementById('barcodeScanner').value = '';
       } else {
-        resElem.innerText = `الباقي للزبون: 0 د.ج`;
-        resElem.style.color = 'var(--success)';
+        renderPOS();
       }
     }
 
     function renderStockTable() {
       const query = document.getElementById('stockSearch').value.toLowerCase();
       const tbody = document.getElementById('stockTableBody');
-      const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+      const filtered = db.inventory.filter(p => p.name.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query)));
 
       tbody.innerHTML = filtered.map(p => {
-        let badgeClass = p.shopQty <= 3 ? 'badge-warning' : 'badge-success';
-        if(p.shopQty === 0) badgeClass = 'badge-danger';
-
+        const isLow = p.shopQty <= 3;
         return `
-          <tr>
+          <tr class="${isLow ? 'low-stock' : ''}">
             <td><b>${p.name}</b></td>
             <td>${p.category || 'عام'}</td>
+            <td><span class="badge ${p.shopQty <= 3 ? 'badge-danger' : 'badge-success'}">${p.shopQty}</span></td>
+            <td><span class="badge badge-warning">${p.storeQty}</span></td>
             <td>${p.buyPrice} د.ج</td>
             <td>${p.sellPrice} د.ج</td>
-            <td><b>${p.shopQty}</b></td>
-            <td>${p.storeQty}</td>
-            <td><span class="badge ${badgeClass}">${p.shopQty <= 3 ? 'منخفض' : 'جيد'}</span></td>
             <td>
-              <button class="btn btn-outline btn-sm" onclick="moveStock(${p.id})"><i class="fa-solid fa-truck-ramp-box"></i> نقل للمحل</button>
+              <button class="btn btn-warning btn-sm" onclick="openTransferModal('${p.name}', 'store_to_shop', ${p.storeQty})" ${p.storeQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>🚚 للمحل</button>
+              <button class="btn btn-purple btn-sm" onclick="openTransferModal('${p.name}', 'shop_to_store', ${p.shopQty})" ${p.shopQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>📦 للمخزن</button>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    function moveStock(id) {
-      const p = products.find(prod => prod.id === id);
-      if(p && p.storeQty > 0) {
-        p.storeQty--;
-        p.shopQty++;
-        saveProductsLocal();
-        renderStockTable();
-        renderPOSProducts();
-        calculateKPIs();
-        showToast(`تم نقل قطعة من المخزن إلى المحل 📦`);
-      } else {
-        showToast(`المخزن فارغ لهذا المنتج! ⚠️`);
+    function openTransferModal(name, direction, maxQty) {
+      document.getElementById('transProductName').value = name;
+      document.getElementById('transDirection').value = direction;
+      document.getElementById('transQty').max = maxQty;
+      document.getElementById('transQty').value = 1;
+      document.getElementById('transMaxQtyHelp').innerText = `الكمية المتاحة بالنقل: ${maxQty}`;
+      document.getElementById('transferModalTitle').innerText = direction === 'store_to_shop' ? '🚚 نقل من المخزن إلى المحل' : '📦 نقل من المحل إلى المخزن';
+      openModal('transferModal');
+    }
+
+    async function confirmTransfer() {
+      const name = document.getElementById('transProductName').value;
+      const direction = document.getElementById('transDirection').value;
+      const qty = parseInt(document.getElementById('transQty').value) || 1;
+
+      let item = db.inventory.find(p => p.name === name);
+      if (item) {
+        if (direction === 'store_to_shop' && item.storeQty >= qty) {
+          item.storeQty -= qty; item.shopQty += qty;
+        } else if (direction === 'shop_to_store' && item.shopQty >= qty) {
+          item.shopQty -= qty; item.storeQty += qty;
+        } else {
+          alert('الكمية المراد نقلها غير متاحة!'); return;
+        }
+
+        saveLocal();
+        closeModal('transferModal');
+        showToast('تم نقل الكمية بنجاح 🚚');
+        await sendApi({ action: "TRANSFER_STOCK", name: name, qty: qty, direction: direction });
       }
     }
 
-    function saveProductsLocal() {
-      localStorage.setItem('store_products', JSON.stringify(products));
+    async function makeSale(name) {
+      let item = db.inventory.find(p => p.name === name);
+      if (item && item.shopQty > 0) {
+        item.shopQty--;
+        const now = new Date();
+        const sale = {
+          id: Date.now().toString(),
+          name: item.name,
+          qty: 1,
+          sellPrice: item.sellPrice,
+          buyPrice: item.buyPrice,
+          totalAmount: item.sellPrice,
+          profit: item.sellPrice - item.buyPrice,
+          date: now.toISOString().split('T')[0],
+          time: now.toTimeString().split(' ')[0].substring(0, 5)
+        };
+        db.sales.unshift(sale);
+        saveLocal();
+        showToast(`تم بيع 1x ${item.name} 🟢`);
+        await sendApi({ action: "ADD_SALE", ...sale });
+      }
     }
 
-    function calculateKPIs() {
-      let lowStockCount = products.filter(p => p.shopQty <= 3).length;
-      document.getElementById('statLowStock').innerText = `${lowStockCount} منتجات`;
+    async function cancelSale(id) {
+      if (!confirm('هل تريد فعلاً إلغاء حركة البيع وإعادة السلعة للمحل؟')) return;
+      const idx = db.sales.findIndex(s => String(s.id) === String(id));
+      if (idx !== -1) {
+        const sale = db.sales[idx];
+        let item = db.inventory.find(p => p.name === sale.name);
+        if (item) item.shopQty += sale.qty;
+        db.sales.splice(idx, 1);
+        saveLocal();
+        showToast('تم إلغاء حركة البيع وإعادة الكمية للمحل ❌');
+        await sendApi({ action: "CANCEL_SALE", id: id, name: sale.name, qty: sale.qty });
+      }
     }
 
-    function initChart() {
-      const ctx = document.getElementById('salesChart').getContext('2d');
-      myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
-          datasets: [{
-            label: 'المبيعات (د.ج)',
-            data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
-            backgroundColor: '#2563eb',
-            borderRadius: 6
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
+    function renderSalesHistory() {
+      const tbody = document.getElementById('salesHistoryBody');
+      tbody.innerHTML = db.sales.map(s => `
+        <tr>
+          <td><b>${s.name}</b></td>
+          <td>${s.qty}</td>
+          <td>${s.totalAmount} د.ج</td>
+          <td style="color:var(--success); font-weight:bold">+${s.profit} د.ج</td>
+          <td>${s.date} | ${s.time}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="cancelSale('${s.id}')">❌ إلغاء</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function calculateStats() {
+      const today = new Date().toISOString().split('T')[0];
+      let salesSum = 0, profitSum = 0;
+      db.sales.forEach(s => {
+        if (s.date === today) {
+          salesSum += (s.totalAmount || 0);
+          profitSum += (s.profit || 0);
+        }
       });
+      document.getElementById('todaySalesVal').innerText = salesSum.toFixed(2) + ' د.ج';
+      document.getElementById('todayProfitVal').innerText = profitSum.toFixed(2) + ' د.ج';
     }
 
-    function updateChart() { if(myChart) myChart.update(); }
+    async function saveProduct() {
+      const name = document.getElementById('mName').value.trim();
+      if (!name) return alert('يرجى إدخال اسم المنتج');
 
-    function openAddProductModal() { document.getElementById('addProductModal').style.display = 'flex'; }
-    function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
+      const pData = {
+        name: name,
+        category: document.getElementById('mCategory').value.trim() || "عام",
+        buyPrice: parseFloat(document.getElementById('mBuyPrice').value) || 0,
+        sellPrice: parseFloat(document.getElementById('mSellPrice').value) || 0,
+        shopQty: parseInt(document.getElementById('mShopQty').value) || 0,
+        storeQty: parseInt(document.getElementById('mStoreQty').value) || 0,
+        barcode: document.getElementById('mBarcode').value.trim()
+      };
+
+      let existing = db.inventory.find(p => p.name === name);
+      if (existing) {
+        existing.shopQty += pData.shopQty;
+        existing.storeQty += pData.storeQty;
+        existing.buyPrice = pData.buyPrice;
+        existing.sellPrice = pData.sellPrice;
+        existing.category = pData.category;
+      } else {
+        db.inventory.push(pData);
+      }
+
+      saveLocal();
+      closeModal('addProductModal');
+      showToast('تم حفظ المنتج بنجاح ✨');
+      await sendApi({ action: "ADD_GOOD", ...pData });
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function saveProductModal() {
-      const name = document.getElementById('mName').value;
-      const category = document.getElementById('mCategory').value || 'عام';
-      const buyPrice = parseFloat(document.getElementById('mBuyPrice').value) || 0;
-      const sellPrice = parseFloat(document.getElementById('mSellPrice').value) || 0;
-      const shopQty = parseInt(document.getElementById('mShopQty').value) || 0;
-      const storeQty = parseInt(document.getElementById('mStoreQty').value) || 0;
-
-      if(!name) { alert('الرجاء كتابة اسم المنتج'); return; }
-
-      products.push({ id: Date.now(), name, category, buyPrice, sellPrice, shopQty, storeQty });
-      saveProductsLocal();
-      renderPOSCategories();
-      renderPOSProducts();
-      renderStockTable();
-      calculateKPIs();
-      closeModal('addProductModal');
-      showToast('تمت إضافة المنتج بنجاح ✨');
-    }
-
-    function saveSettings() {
-      const url = document.getElementById('apiUrlInput').value;
-      localStorage.setItem('apps_script_url', url);
+    function saveApiUrl() {
+      const url = document.getElementById('apiUrlInput').value.trim();
+      localStorage.setItem('app_api_url', url);
       closeModal('settingsModal');
-      showToast('تم حفظ رابط الـ API بنجاح ⚙️');
+      showToast('تم حفظ رابط الـ API ⚙️');
+      syncWithCloud();
     }
 
-    function loadApiUrl() {
-      const savedUrl = localStorage.getItem('apps_script_url');
-      if(savedUrl) document.getElementById('apiUrlInput').value = savedUrl;
+    async function syncWithCloud() {
+      const url = localStorage.getItem('app_api_url');
+      if (!url) return;
+      showToast('جاري جلب البيانات من السحابة... 🔄');
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.inventory) {
+          db.inventory = data.inventory;
+          if (data.sales) db.sales = data.sales;
+          saveLocal();
+          showToast('تم جلب البيانات بنجاح 🟢');
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    function exportDataBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `store_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      showToast('تم تصدير النسخة الاحتياطية 💾');
-    }
-
-    function syncData() {
-      showToast('جاري المزامنة مع السحابة... 🔄');
-      setTimeout(() => { showToast('تمت المزامنة بنجاح 🟢'); }, 1500);
+    async function sendApi(payload) {
+      const url = localStorage.getItem('app_api_url');
+      if (!url) return;
+      try {
+        await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } catch (e) { console.error(e); }
     }
   </script>
 </body>
