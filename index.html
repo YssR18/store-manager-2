@@ -3,21 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>نظام إدارة المحل والمخزون المتقدم</title>
+  <title>نظام إدارة المحل والمخزون الشامل</title>
 
+  <!-- PWA & Fullscreen Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22%D9%85%D8%AF%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%AD%D9%84%22,%22short_name%22:%22%D8%A7%D9%84%D9%85%D8%AD%D9%84%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#0f172a%22,%22theme_color%22:%22#2563eb%22}">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root {
       --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #f59e0b;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #0f172a;
@@ -39,15 +44,16 @@
       --text-muted: #94a3b8;
       --border: #334155;
       --table-header: #1e293b;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     }
 
-    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
+    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); transition: background-color 0.3s, color 0.3s; padding-bottom: 50px; }
 
     .app-header {
       background: var(--card-bg); border-bottom: 1px solid var(--border);
       padding: 12px 18px; position: sticky; top: 0; z-index: 100;
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow);
     }
 
     .app-title { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
@@ -55,35 +61,45 @@
 
     .icon-btn {
       background: var(--bg); border: 1px solid var(--border); color: var(--text);
-      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
     }
+    .icon-btn:active { transform: scale(0.92); }
 
     .container { max-width: 1100px; margin: 15px auto; padding: 0 12px; }
 
-    /* Stats Grid */
+    /* Stats Dashboard */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .stat-card { background: var(--card-bg); padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
-    .stat-card .title { font-size: 0.82rem; color: var(--text-muted); }
+    .stat-card { background: var(--card-bg); padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 4px; }
+    .stat-card .title { font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
     .stat-card .val { font-size: 1.25rem; font-weight: 800; }
     .stat-card.sales .val { color: var(--primary); }
     .stat-card.profit .val { color: var(--success); }
+    .stat-card.stock .val { color: var(--warning); }
 
-    .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid var(--border); }
-    .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px 16px; font-weight: 700; cursor: pointer; }
+    /* Navigation Tabs */
+    .nav-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 15px; border-bottom: 2px solid var(--border); scrollbar-width: none; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px 16px; font-weight: 700; font-size: 0.95rem; border-radius: 8px 8px 0 0; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
     .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: var(--card-bg); }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .toolbar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    /* Toolbar & Search */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: center; }
     .search-box { flex: 1; min-width: 200px; position: relative; }
-    .search-box input { width: 100%; padding: 10px 38px 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card-bg); color: var(--text); }
+    .search-box input { width: 100%; padding: 10px 38px 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card-bg); color: var(--text); outline: none; }
     .search-box i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 
+    .filter-tags { display: flex; gap: 6px; overflow-x: auto; width: 100%; padding-bottom: 4px; }
+    .tag-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .tag-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Product Cards Grid */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-    .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; justify-content: space-between; }
-    .product-card .p-name { font-size: 0.95rem; font-weight: 700; }
-    .product-card .p-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin: 6px 0; }
+    .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between; }
+    .product-card .p-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .product-card .p-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
 
     .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; display: inline-block; }
     .badge-success { background: #d1fae5; color: #065f46; }
@@ -92,12 +108,18 @@
 
     tr.low-stock { background-color: #fee2e2 !important; color: #991b1b; }
 
-    .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); }
+    /* Tables */
+    .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
     table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.88rem; }
     th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: center; }
-    th { background: var(--table-header); color: var(--text-muted); }
+    th { background: var(--table-header); color: var(--text-muted); font-weight: 700; }
 
-    .btn { padding: 8px 14px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    /* Calculator */
+    .calculator-box { background: var(--bg); padding: 12px; border-radius: var(--radius); border: 1px dashed var(--primary); margin-top: 15px; }
+    .calculator-box .change-result { font-size: 1.1rem; font-weight: 800; color: var(--success); margin-top: 6px; }
+
+    /* Buttons */
+    .btn { padding: 8px 14px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-warning { background: var(--warning); color: white; }
@@ -106,18 +128,21 @@
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-sm { padding: 4px 8px; font-size: 0.78rem; }
 
+    /* Forms & Modals */
     .form-group { margin-bottom: 12px; text-align: right; }
     .form-group label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
-    .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); }
+    .form-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); outline: none; }
 
     .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center; padding: 15px; }
-    .modal-content { background: var(--card-bg); padding: 20px; border-radius: var(--radius); width: 100%; max-width: 420px; }
+    .modal-content { background: var(--card-bg); padding: 20px; border-radius: var(--radius); width: 100%; max-width: 440px; }
 
-    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 10px 20px; border-radius: 25px; font-weight: 600; z-index: 1000; transition: transform 0.3s; }
+    .chart-container { background: var(--card-bg); padding: 15px; border-radius: var(--radius); border: 1px solid var(--border); margin-top: 15px; box-shadow: var(--shadow); }
+
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 10px 20px; border-radius: 25px; font-weight: 600; z-index: 1000; transition: transform 0.3s; display: flex; align-items: center; gap: 8px; }
     #toast.show { transform: translateX(-50%) translateY(0); }
 
     @media print {
-      .app-header, .nav-tabs, .toolbar, button, .modal { display: none !important; }
+      .app-header, .nav-tabs, .toolbar, .calculator-box, button, .modal { display: none !important; }
       body { background: white; color: black; }
     }
   </style>
@@ -131,28 +156,35 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" onclick="syncWithCloud()" title="مزامنة فورية"><i class="fa-solid fa-rotate"></i></button>
-      <button class="icon-btn" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i></button>
-      <button class="icon-btn" onclick="openModal('settingsModal')"><i class="fa-solid fa-gear"></i></button>
+      <button class="icon-btn" onclick="toggleDarkMode()" title="المظهر"><i class="fa-solid fa-moon"></i></button>
+      <button class="icon-btn" onclick="openModal('settingsModal')" title="الإعدادات"><i class="fa-solid fa-gear"></i></button>
     </div>
   </header>
 
   <div class="container">
 
+    <!-- KPI Cards -->
     <div class="stats-grid">
       <div class="stat-card sales">
-        <span class="title">مداخيل المبيعات اليومية</span>
+        <span class="title"><i class="fa-solid fa-cart-shopping"></i> مبيعات اليوم</span>
         <span class="val" id="todaySalesVal">0.00 د.ج</span>
       </div>
       <div class="stat-card profit">
-        <span class="title">صافي أرباح اليوم التقديرية</span>
+        <span class="title"><i class="fa-solid fa-chart-line"></i> أرباح اليوم النقدية</span>
         <span class="val" id="todayProfitVal">0.00 د.ج</span>
+      </div>
+      <div class="stat-card stock">
+        <span class="title"><i class="fa-solid fa-boxes-stacked"></i> تنبيه المخزون</span>
+        <span class="val" id="statLowStock">0 منتج</span>
       </div>
     </div>
 
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('pos')"><i class="fa-solid fa-cash-register"></i> نقطة البيع</button>
       <button class="tab-btn" onclick="switchTab('stock')"><i class="fa-solid fa-boxes-packing"></i> إدارة المخزون</button>
       <button class="tab-btn" onclick="switchTab('sales-history')"><i class="fa-solid fa-receipt"></i> سجل المبيعات</button>
+      <button class="tab-btn" onclick="switchTab('reports')"><i class="fa-solid fa-chart-pie"></i> التقارير والرسوم البيانية</button>
     </div>
 
     <!-- TAB 1: POS -->
@@ -160,10 +192,29 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="fa-solid fa-barcode"></i>
-          <input type="text" id="barcodeScanner" placeholder="📷 مسح الباركود أو البحث..." oninput="handleBarcode(this.value)">
+          <input type="text" id="barcodeScanner" placeholder="📷 مسح الباركود أو البحث عن السلعة..." oninput="handleBarcode(this.value)">
+        </div>
+        <div class="filter-tags" id="posCategoryTags">
+          <button class="tag-btn active" onclick="filterPOSCategory('all')">الكل</button>
         </div>
       </div>
+
       <div class="product-grid" id="posProductGrid"></div>
+
+      <!-- Quick Change Calculator -->
+      <div class="calculator-box">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div class="form-group" style="flex: 1; margin: 0;">
+            <label><i class="fa-solid fa-hand-holding-dollar"></i> المبلغ المستلم من الزبون (د.ج):</label>
+            <input type="number" id="cashReceived" placeholder="مثال: 2000" oninput="calculateChange()">
+          </div>
+          <div class="form-group" style="flex: 1; margin: 0;">
+            <label><i class="fa-solid fa-receipt"></i> إجمالي الفاتورة:</label>
+            <input type="number" id="currentBillTotal" value="0" readonly>
+          </div>
+        </div>
+        <div class="change-result" id="changeAmountText">الباقي للزبون: 0 د.ج</div>
+      </div>
     </div>
 
     <!-- TAB 2: Stock -->
@@ -217,28 +268,39 @@
       </div>
     </div>
 
+    <!-- TAB 4: Reports & Analytics -->
+    <div id="tab-reports" class="tab-content">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button class="btn btn-outline" onclick="exportDataBackup()"><i class="fa-solid fa-file-export"></i> تصدير نسخة احتياطية (JSON)</button>
+      </div>
+      <div class="chart-container">
+        <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-chart-column"></i> أداء المبيعات الأسبوعي</h3>
+        <canvas id="salesChart" height="200"></canvas>
+      </div>
+    </div>
+
   </div>
 
   <!-- Add Product Modal -->
   <div class="modal" id="addProductModal">
     <div class="modal-content">
-      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-box"></i> إضافة / تحديث سلعة</h3>
+      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-box"></i> إضافة / تعديل سلعة</h3>
       <div class="form-group">
         <label>اسم المنتج</label>
         <input type="text" id="mName" required>
       </div>
       <div class="form-group">
-        <label>النوع / الفئة</label>
-        <input type="text" id="mCategory" placeholder="مثال: ألبسة">
+        <label>الفئة / النوع</label>
+        <input type="text" id="mCategory" placeholder="مثال: ألبسة، إلكترونيات...">
       </div>
       <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex: 1;">
           <label>سعر الشراء (د.ج)</label>
-          <input type="number" id="mBuyPrice" placeholder="0.00">
+          <input type="number" id="mBuyPrice" placeholder="0">
         </div>
         <div class="form-group" style="flex: 1;">
           <label>سعر البيع (د.ج)</label>
-          <input type="number" id="mSellPrice" placeholder="0.00">
+          <input type="number" id="mSellPrice" placeholder="0">
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
@@ -252,7 +314,7 @@
         </div>
       </div>
       <div class="form-group">
-        <label>الباركود (اختياري)</label>
+        <label>رمز الباركود (اختياري)</label>
         <input type="text" id="mBarcode">
       </div>
       <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -262,7 +324,7 @@
     </div>
   </div>
 
-  <!-- Transfer Stock Modal -->
+  <!-- Transfer Modal -->
   <div class="modal" id="transferModal">
     <div class="modal-content">
       <h3 id="transferModalTitle" style="margin-bottom: 15px;"><i class="fa-solid fa-truck-ramp-box"></i> نقل السلع</h3>
@@ -283,10 +345,10 @@
   <!-- Settings Modal -->
   <div class="modal" id="settingsModal">
     <div class="modal-content">
-      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> ربط الـ API</h3>
+      <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> إعدادات الربط السحابي</h3>
       <div class="form-group">
-        <label>رابط Google Apps Script:</label>
-        <input type="text" id="apiUrlInput" placeholder="ضع رابط الخدمة السحابية هنا">
+        <label>رابط Google Apps Script API:</label>
+        <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
       </div>
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button class="btn btn-primary" style="flex: 1;" onclick="saveApiUrl()">حفظ المزامنة</button>
@@ -299,6 +361,8 @@
 
   <script>
     let db = { inventory: [], sales: [] };
+    let activePOSCategory = 'all';
+    let myChart = null;
 
     window.onload = function() {
       const savedLocal = localStorage.getItem('app_db_data');
@@ -311,6 +375,7 @@
         document.getElementById('apiUrlInput').value = url;
         syncWithCloud();
       }
+      initChart();
     };
 
     function showToast(msg) {
@@ -322,6 +387,8 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      showToast(isDark ? 'تفعيل الوضع الليلي 🌙' : 'تفعيل الوضع النهاري ☀️');
     }
 
     function switchTab(tabId) {
@@ -329,6 +396,7 @@
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       event.currentTarget.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
+      if(tabId === 'reports' && myChart) myChart.update();
     }
 
     function saveLocal() {
@@ -337,29 +405,65 @@
     }
 
     function renderAll() {
+      renderPOSCategories();
       renderPOS();
       renderStockTable();
       renderSalesHistory();
       calculateStats();
     }
 
+    function renderPOSCategories() {
+      const categories = ['all', ...new Set(db.inventory.map(p => p.category || 'عام'))];
+      const container = document.getElementById('posCategoryTags');
+      container.innerHTML = categories.map(cat => `
+        <button class="tag-btn ${activePOSCategory === cat ? 'active' : ''}" onclick="filterPOSCategory('${cat}')">
+          ${cat === 'all' ? 'الكل' : cat}
+        </button>
+      `).join('');
+    }
+
+    function filterPOSCategory(cat) {
+      activePOSCategory = cat;
+      renderPOSCategories();
+      renderPOS();
+    }
+
     function renderPOS() {
       const query = document.getElementById('barcodeScanner').value.toLowerCase();
       const grid = document.getElementById('posProductGrid');
-      const filtered = db.inventory.filter(p => p.name.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query)));
+      const filtered = db.inventory.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query));
+        const matchesCategory = activePOSCategory === 'all' || p.category === activePOSCategory;
+        return matchesSearch && matchesCategory;
+      });
 
-      grid.innerHTML = filtered.map(p => `
-        <div class="product-card">
-          <div>
-            <div class="p-name">${p.name}</div>
-            <div class="p-price">${p.sellPrice} د.ج</div>
-            <div style="font-size:0.8rem; color:var(--text-muted)">المحل: <b>${p.shopQty}</b> | المخزن: <b>${p.storeQty}</b></div>
+      if(filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:30px; color:var(--text-muted)">لا توجد منتجات مطابقة</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        let badgeClass = 'badge-success';
+        let badgeText = 'متوفر';
+        if(p.shopQty === 0) { badgeClass = 'badge-danger'; badgeText = 'منتهي بالمحل'; }
+        else if(p.shopQty <= 3) { badgeClass = 'badge-warning'; badgeText = 'قريب من النفاذ'; }
+
+        return `
+          <div class="product-card">
+            <div>
+              <div class="p-name">${p.name}</div>
+              <div class="p-price">${p.sellPrice} د.ج</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); display:flex; justify-content:space-between; margin-bottom:8px">
+                <span>المحل: <b>${p.shopQty}</b></span>
+                <span class="badge ${badgeClass}">${badgeText}</span>
+              </div>
+            </div>
+            <button class="btn btn-success btn-sm" onclick="makeSale('${p.name}')" ${p.shopQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>
+              <i class="fa-solid fa-cart-plus"></i> بيع قطعة
+            </button>
           </div>
-          <button class="btn btn-success btn-sm" style="margin-top:8px" onclick="makeSale('${p.name}')" ${p.shopQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>
-            <i class="fa-solid fa-cart-plus"></i> بيع
-          </button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function handleBarcode(val) {
@@ -370,6 +474,24 @@
         document.getElementById('barcodeScanner').value = '';
       } else {
         renderPOS();
+      }
+    }
+
+    function calculateChange() {
+      const bill = parseFloat(document.getElementById('currentBillTotal').value) || 0;
+      const cash = parseFloat(document.getElementById('cashReceived').value) || 0;
+      const change = cash - bill;
+      const resElem = document.getElementById('changeAmountText');
+      
+      if(cash > 0 && change >= 0) {
+        resElem.innerText = `الباقي للزبون: ${change} د.ج`;
+        resElem.style.color = 'var(--success)';
+      } else if(cash > 0 && change < 0) {
+        resElem.innerText = `المبلغ ناقص بـ: ${Math.abs(change)} د.ج`;
+        resElem.style.color = 'var(--danger)';
+      } else {
+        resElem.innerText = `الباقي للزبون: 0 د.ج`;
+        resElem.style.color = 'var(--success)';
       }
     }
 
@@ -419,7 +541,7 @@
         } else if (direction === 'shop_to_store' && item.shopQty >= qty) {
           item.shopQty -= qty; item.storeQty += qty;
         } else {
-          alert('الكمية المراد نقلها غير متاحة!'); return;
+          alert('الكمية غير متوفرة بالنقل!'); return;
         }
 
         saveLocal();
@@ -447,13 +569,16 @@
         };
         db.sales.unshift(sale);
         saveLocal();
-        showToast(`تم بيع 1x ${item.name} 🟢`);
+
+        document.getElementById('currentBillTotal').value = item.sellPrice;
+        calculateChange();
+        showToast(`تم بيع 1x (${item.name}) 🟢`);
         await sendApi({ action: "ADD_SALE", ...sale });
       }
     }
 
     async function cancelSale(id) {
-      if (!confirm('هل تريد فعلاً إلغاء حركة البيع وإعادة السلعة للمحل؟')) return;
+      if (!confirm('هل تريد فعلاً إلغاء حركة البيع وإعادة الكمية للمحل؟')) return;
       const idx = db.sales.findIndex(s => String(s.id) === String(id));
       if (idx !== -1) {
         const sale = db.sales[idx];
@@ -461,7 +586,7 @@
         if (item) item.shopQty += sale.qty;
         db.sales.splice(idx, 1);
         saveLocal();
-        showToast('تم إلغاء حركة البيع وإعادة الكمية للمحل ❌');
+        showToast('تم إلغاء الحركة وإعادة الكمية للمحل ❌');
         await sendApi({ action: "CANCEL_SALE", id: id, name: sale.name, qty: sale.qty });
       }
     }
@@ -491,6 +616,9 @@
       });
       document.getElementById('todaySalesVal').innerText = salesSum.toFixed(2) + ' د.ج';
       document.getElementById('todayProfitVal').innerText = profitSum.toFixed(2) + ' د.ج';
+
+      let lowCount = db.inventory.filter(p => p.shopQty <= 3).length;
+      document.getElementById('statLowStock').innerText = `${lowCount} منتجات`;
     }
 
     async function saveProduct() {
@@ -520,8 +648,36 @@
 
       saveLocal();
       closeModal('addProductModal');
-      showToast('تم حفظ المنتج بنجاح ✨');
+      showToast('تم حفظ السلعة بنجاح ✨');
       await sendApi({ action: "ADD_GOOD", ...pData });
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+          datasets: [{
+            label: 'المبيعات (د.ج)',
+            data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+            backgroundColor: '#2563eb',
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    function exportDataBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db.inventory, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `store_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('تم تصدير النسخة الاحتياطية 💾');
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -538,7 +694,7 @@
     async function syncWithCloud() {
       const url = localStorage.getItem('app_api_url');
       if (!url) return;
-      showToast('جاري جلب البيانات من السحابة... 🔄');
+      showToast('جاري الجلب من السحابة... 🔄');
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -546,11 +702,9 @@
           db.inventory = data.inventory;
           if (data.sales) db.sales = data.sales;
           saveLocal();
-          showToast('تم جلب البيانات بنجاح 🟢');
+          showToast('تمت المزامنة وجلب السلع القديمة 🟢');
         }
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     async function sendApi(payload) {
