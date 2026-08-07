@@ -3,37 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>نظام إدارة المحل التجاري المتقدم</title>
+  <title>نظام إدارة المحل</title>
 
-  <!-- PWA & Meta -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#1e293b">
 
-  <!-- Fonts & Icons & Libraries -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Camera Barcode Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <style>
     :root {
       --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --bg: #f1f5f9;
+      --bg: #f8fafc;
       --card: #ffffff;
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
-      --sidebar-width: 240px;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
       --radius: 12px;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
 
     body.dark-mode {
@@ -42,398 +35,204 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: #334155;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
     }
 
-    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; transition: background 0.2s, color 0.2s; }
-    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; }
 
-    /* Login Screen */
-    #loginOverlay {
-      position: fixed; inset: 0; background: var(--bg); z-index: 2000;
-      display: flex; align-items: center; justify-content: center; padding: 20px;
+    /* Top Bar */
+    .app-bar {
+      background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center; sticky; top:0; z-index: 100;
     }
-    .login-card {
-      background: var(--card); padding: 30px; border-radius: 16px; width: 100%; max-width: 380px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--border); text-align: center;
+    .app-bar h1 { font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+
+    /* Bottom Mobile Navigation */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
+      border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000;
+    }
+    .nav-item { color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 0.72rem; font-weight: 700; gap: 3px; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item i { font-size: 1.2rem; }
+
+    .container { padding: 12px; }
+
+    /* Mobile Cards */
+    .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 12px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+
+    /* Interactive List */
+    .list-item {
+      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+      padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
     }
 
-    /* Layout Sidebar */
-    .sidebar {
-      width: var(--sidebar-width); background: var(--card); border-left: 1px solid var(--border);
-      display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s;
-    }
-    .sidebar-header { padding: 20px; font-weight: 800; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
-    .sidebar-menu { list-style: none; padding: 10px; flex: 1; overflow-y: auto; }
-    .sidebar-menu li a {
-      display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 10px;
-      color: var(--text-muted); text-decoration: none; font-weight: 600; margin-bottom: 4px;
-    }
-    .sidebar-menu li a:hover, .sidebar-menu li a.active { background: var(--primary); color: white; }
-
-    /* Main Content */
-    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .top-navbar {
-      background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .content-body { flex: 1; padding: 20px; overflow-y: auto; }
-
-    /* Cards & Stats */
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .dash-card { background: var(--card); padding: 18px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
-    .dash-card h4 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
-    .dash-card .number { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
-
-    /* POS Vertical List View */
-    .pos-list { display: flex; flex-direction: column; gap: 8px; }
-    .pos-item {
-      background: var(--card); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-    }
-    .pos-item:hover { border-color: var(--primary); }
-
-    /* Tables */
-    .table-container { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: var(--shadow); }
-    table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem; }
-    th, td { padding: 12px 15px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-    th { background: var(--bg); color: var(--text-muted); font-weight: 700; }
-
-    /* Status Badges */
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; }
     .badge-success { background: #d1fae5; color: #065f46; }
     .badge-warning { background: #fef3c7; color: #92400e; }
     .badge-danger { background: #fee2e2; color: #991b1b; }
 
-    /* Buttons & Forms */
-    .btn { padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+    /* Forms & Inputs */
+    .form-group { margin-bottom: 10px; text-align: right; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); outline: none; }
+
+    .btn { padding: 8px 14px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
 
-    .form-group { margin-bottom: 12px; text-align: right; }
-    .form-group label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); outline: none;
-    }
+    /* Modals */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 15px; }
+    .modal-content { background: var(--card); border-radius: var(--radius); padding: 18px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
 
-    /* Modals & Toast */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 15px; }
-    .modal-content { background: var(--card); padding: 22px; border-radius: var(--radius); width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
-
-    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #0f172a; color: white; padding: 10px 20px; border-radius: 30px; font-weight: 600; z-index: 2000; transition: transform 0.3s; }
+    #toast { position: fixed; top: 15px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #0f172a; color: white; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; z-index: 3000; transition: transform 0.3s; }
     #toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* Responsive Mobile Navigation */
-    .mobile-nav-toggle { display: none; }
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(100%); }
-      .sidebar.open { transform: translateX(0); }
-      .mobile-nav-toggle { display: block; }
-    }
   </style>
 </head>
 <body>
 
-  <!-- 🔑 1. شاشة تسجيل الدخول -->
-  <div id="loginOverlay">
-    <div class="login-card">
-      <i class="fa-solid fa-store fa-3x" style="color:var(--primary); margin-bottom:15px;"></i>
-      <h2 style="margin-bottom:15px;">تسجيل الدخول</h2>
-      <div class="form-group">
-        <label>اسم المستخدم</label>
-        <input type="text" id="loginUser" value="admin">
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور</label>
-        <input type="password" id="loginPass" value="1234">
-      </div>
-      <div class="form-group">
-        <label>الصلاحية</label>
-        <select id="loginRole">
-          <option value="admin">المدير (جميع الصلاحيات)</option>
-          <option value="employee">الموظف (مبيعات واستعراض)</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:10px;" onclick="doLogin()">دخول</button>
+  <!-- Top Bar -->
+  <header class="app-bar">
+    <h1><i class="fa-solid fa-store"></i> <span id="appShopTitle">إدارة المحل</span></h1>
+    <div style="display:flex; gap:6px;">
+      <button class="btn btn-outline btn-sm" onclick="syncCloud()"><i class="fa-solid fa-rotate"></i></button>
+      <button class="btn btn-outline btn-sm" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i></button>
     </div>
+  </header>
+
+  <div class="container">
+
+    <!-- TAB 1: POS (نقطة البيع) -->
+    <section id="sec-pos" class="page-sec">
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input type="text" id="posSearch" placeholder="🔍 بحث أو باركود..." oninput="renderPOS()" style="flex:1; padding:9px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text)">
+        <button class="btn btn-primary btn-sm" onclick="startCameraScanner()"><i class="fa-solid fa-camera"></i> الكاميرا</button>
+      </div>
+
+      <div id="posList"></div>
+    </section>
+
+    <!-- TAB 2: المخزون والسلع -->
+    <section id="sec-stock" class="page-sec" style="display:none;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <button class="btn btn-primary btn-sm" onclick="openModal('addGoodModal')"><i class="fa-solid fa-plus"></i> إضافة منتج</button>
+        <button class="btn btn-outline btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
+      </div>
+      <div id="stockList"></div>
+    </section>
+
+    <!-- TAB 3: التقارير والحركات اليومية -->
+    <section id="sec-reports" class="page-sec" style="display:none;">
+      <div class="stats-grid">
+        <div class="card" style="margin:0">
+          <small style="color:var(--text-muted)">مبيعات اليوم</small>
+          <h3 id="todaySalesVal" style="color:var(--primary)">0 د.ج</h3>
+        </div>
+        <div class="card" style="margin:0">
+          <small style="color:var(--text-muted)">أرباح اليوم</small>
+          <h3 id="todayProfitVal" style="color:var(--success)">0 د.ج</h3>
+        </div>
+      </div>
+
+      <h4 style="margin:12px 0 8px 0; font-size:0.95rem;">السجل اليومي للمبيعات:</h4>
+      <div id="dailySalesHistory"></div>
+    </section>
+
+    <!-- TAB 4: الإعدادات -->
+    <section id="sec-settings" class="page-sec" style="display:none;">
+      <div class="card">
+        <h3 style="margin-bottom:12px; font-size:1rem;"><i class="fa-solid fa-gear"></i> الربط والإعدادات</h3>
+        <div class="form-group">
+          <label>اسم المحل:</label>
+          <input type="text" id="shopNameInput" value="محلي">
+        </div>
+        <div class="form-group">
+          <label>رابط Google Apps Script API:</label>
+          <input type="text" id="apiUrlInput" placeholder="ضع الرابط هنا">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">حفظ وتزامن</button>
+      </div>
+    </section>
+
   </div>
 
-  <!-- 📌 2. القائمة الجانبية -->
-  <aside class="sidebar" id="appSidebar">
-    <div class="sidebar-header">
-      <i class="fa-solid fa-shop"></i> <span id="shopTitleDisplay">إدارة المحل</span>
-    </div>
-    <ul class="sidebar-menu">
-      <li><a href="#" class="active" onclick="navigate('dashboard')"><i class="fa-solid fa-chart-line"></i> الرئيسية</a></li>
-      <li><a href="#" onclick="navigate('pos')"><i class="fa-solid fa-cash-register"></i> نقطة البيع</a></li>
-      <li><a href="#" onclick="navigate('goods')"><i class="fa-solid fa-box-open"></i> السلع</a></li>
-      <li><a href="#" onclick="navigate('stock')"><i class="fa-solid fa-boxes-packing"></i> المخزون</a></li>
-      <li><a href="#" onclick="navigate('movements')"><i class="fa-solid fa-arrow-right-arrow-left"></i> الحركات</a></li>
-      <li><a href="#" onclick="navigate('categories')"><i class="fa-solid fa-layer-group"></i> أنواع المنتجات</a></li>
-      <li><a href="#" onclick="navigate('reports')"><i class="fa-solid fa-file-invoice-dollar"></i> التقارير</a></li>
-      <li id="menuSettings"><a href="#" onclick="navigate('settings')"><i class="fa-solid fa-gear"></i> الإعدادات</a></li>
-    </ul>
-  </aside>
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item active" onclick="switchTab('pos', this)"><i class="fa-solid fa-cash-register"></i><span>البيع</span></a>
+    <a href="#" class="nav-item" onclick="switchTab('stock', this)"><i class="fa-solid fa-boxes-stacked"></i><span>المخزون</span></a>
+    <a href="#" class="nav-item" onclick="switchTab('reports', this)"><i class="fa-solid fa-chart-line"></i><span>التقارير</span></a>
+    <a href="#" class="nav-item" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear"></i><span>الإعدادات</span></a>
+  </nav>
 
-  <!-- 🖥️ 3. الواجهة الرئيسية -->
-  <div class="main-wrapper">
-    <header class="top-navbar">
-      <button class="btn btn-outline mobile-nav-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-      <div style="font-weight:700;" id="userBadge">مرحباً: المدير</div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-outline btn-sm" onclick="syncWithCloud()" title="مزامنة"><i class="fa-solid fa-rotate"></i></button>
-        <button class="btn btn-outline btn-sm" onclick="toggleDarkMode()" title="المظهر"><i class="fa-solid fa-moon"></i></button>
-        <button class="btn btn-danger btn-sm" onclick="logout()"><i class="fa-solid fa-power-off"></i></button>
-      </div>
-    </header>
-
-    <div class="content-body">
-
-      <!-- SECTION: Dashboard -->
-      <section id="sec-dashboard" class="page-sec">
-        <div class="dashboard-grid">
-          <div class="dash-card"><h4>إجمالي المنتجات</h4><div class="number" id="dashTotalItems">0</div></div>
-          <div class="dash-card"><h4>إجمالي القطع المخزنة</h4><div class="number" id="dashTotalQty">0</div></div>
-          <div class="dash-card"><h4>منخفض المخزون</h4><div class="number" style="color:var(--warning)" id="dashLowQty">0</div></div>
-          <div class="dash-card"><h4>المنتجات المنتهية</h4><div class="number" style="color:var(--danger)" id="dashZeroQty">0</div></div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:15px; margin-top:15px;">
-          <div class="dash-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-clock-rotate-left"></i> آخر 5 حركات</h3>
-            <div class="table-container">
-              <table>
-                <thead><tr><th>المنتج</th><th>الحركة</th><th>الكمية</th><th>السبب</th></tr></thead>
-                <tbody id="dashLastMovements"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="dash-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-chart-area"></i> حركة المخزون والمبيعات</h3>
-            <canvas id="dashChart" height="180"></canvas>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION: POS (نقطة البيع - قائمة طولية) -->
-      <section id="sec-pos" class="page-sec" style="display:none;">
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-          <div style="flex:1; position:relative;">
-            <input type="text" id="posSearchInput" placeholder="🔍 بحث بالاسم، الباركود أو الفئة..." oninput="renderPOSList()" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);">
-          </div>
-          <!-- 📷 زر فتح كاميرا الباركود -->
-          <button class="btn btn-primary" onclick="openCameraScanner()"><i class="fa-solid fa-camera"></i> مسح كاميرا</button>
-        </div>
-
-        <!-- قائمة المنتجات الطولية -->
-        <div class="pos-list" id="posListContainer"></div>
-      </section>
-
-      <!-- SECTION: السلع -->
-      <section id="sec-goods" class="page-sec" style="display:none;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <h2>قائمة السلع</h2>
-          <button class="btn btn-primary" onclick="openAddGoodModal()"><i class="fa-solid fa-plus"></i> إضافة سلعة جديدة</button>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead><tr><th>ID</th><th>تاريخ الدخول</th><th>الاسم</th><th>النوع</th><th>سعر البيع</th><th>الكمية الكلية</th><th>ملاحظات</th></tr></thead>
-            <tbody id="goodsTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SECTION: المخزون -->
-      <section id="sec-stock" class="page-sec" style="display:none;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <h2>جدول المخزون</h2>
-          <button class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead><tr><th>اسم المنتج</th><th>النوع</th><th>المحل</th><th>المخزن</th><th>الجامع</th><th>سعر البيع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-            <tbody id="stockTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SECTION: الحركات -->
-      <section id="sec-movements" class="page-sec" style="display:none;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <h2>سجل الحركات العام</h2>
-          <button class="btn btn-primary" onclick="openNewMovementModal()"><i class="fa-solid fa-plus"></i> إضافة حركة مخزنية</button>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead><tr><th>#</th><th>التاريخ والوقت</th><th>المنتج</th><th>نوع الحركة</th><th>الكمية</th><th>الرصيد بعدها</th><th>السبب</th><th>المستخدم</th></tr></thead>
-            <tbody id="movementsTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SECTION: أنواع المنتجات -->
-      <section id="sec-categories" class="page-sec" style="display:none;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <h2>أنواع الفئات</h2>
-          <button class="btn btn-primary" onclick="openAddCatModal()"><i class="fa-solid fa-plus"></i> إضافة نوع</button>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead><tr><th>اسم النوع</th><th>عدد المنتجات</th><th>خيارات</th></tr></thead>
-            <tbody id="catsTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SECTION: التقارير (مصنفة حسب الأيام) -->
-      <section id="sec-reports" class="page-sec" style="display:none;">
-        <h2 style="margin-bottom:15px;">التقارير وسجل المبيعات اليومي</h2>
-        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-          <button class="btn btn-outline" onclick="exportDataCSV()"><i class="fa-solid fa-file-csv"></i> تصدير CSV</button>
-          <button class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> طباعة PDF</button>
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead><tr><th>التاريخ</th><th>عدد المبيعات</th><th>إجمالي المداخيل</th><th>صافي الأرباح</th></tr></thead>
-            <tbody id="reportsDailyTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SECTION: الإعدادات -->
-      <section id="sec-settings" class="page-sec" style="display:none;">
-        <h2>إعدادات النظام والربط السحابي</h2>
-        <div class="dash-card" style="margin-top:15px; max-width:500px;">
-          <div class="form-group">
-            <label>اسم المحل التجارية:</label>
-            <input type="text" id="settingShopName" value="متجري">
-          </div>
-          <div class="form-group">
-            <label>رابط Google Apps Script API:</label>
-            <input type="text" id="settingApiUrl" placeholder="https://script.google.com/macros/s/.../exec">
-          </div>
-          <button class="btn btn-primary" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات</button>
-        </div>
-      </section>
-
-    </div>
-  </div>
-
-  <!-- 📷 4. نافذة كاميرا الباركود الشغّالة -->
+  <!-- Modals -->
+  <!-- 📷 نافذة كاميرا الباركود -->
   <div class="modal" id="cameraModal">
     <div class="modal-content" style="text-align:center;">
-      <h3><i class="fa-solid fa-camera"></i> مسح كود الباركود</h3>
-      <div id="qr-reader" style="width:100%; margin-top:10px;"></div>
-      <button class="btn btn-outline" style="margin-top:15px;" onclick="closeCameraScanner()">إغلاق الكاميرا</button>
+      <h3 style="margin-bottom:10px;"><i class="fa-solid fa-camera"></i> مسح الباركود</h3>
+      <div id="cameraReader" style="width:100%;"></div>
+      <button class="btn btn-outline" style="margin-top:12px; width:100%;" onclick="stopCameraScanner()">إلغاء</button>
     </div>
   </div>
 
-  <!-- 📦 5. نافذة إضافة سلعة جديدة (مع توليد باركود تلقائي) -->
+  <!-- ➕ إضافة منتج مع مولد باركود -->
   <div class="modal" id="addGoodModal">
     <div class="modal-content">
-      <h3>إضافة سلعة جديدة</h3>
-      <div class="form-group"><label>اسم المنتج</label><input type="text" id="gName"></div>
-      <div class="form-group"><label>نوع المنتج</label><select id="gCategory"></select></div>
-      <div style="display:flex; gap:10px;">
-        <div class="form-group" style="flex:1"><label>سعر الشراء</label><input type="number" id="gBuyPrice"></div>
-        <div class="form-group" style="flex:1"><label>سعر البيع</label><input type="number" id="gSellPrice"></div>
+      <h3 style="margin-bottom:12px;">إضافة سلعة جديدة</h3>
+      <div class="form-group"><label>اسم السلعة</label><input type="text" id="mName"></div>
+      <div class="form-group"><label>الفئة</label><input type="text" id="mCategory" value="عام"></div>
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1"><label>سعر الشراء</label><input type="number" id="mBuyPrice"></div>
+        <div class="form-group" style="flex:1"><label>سعر البيع</label><input type="number" id="mSellPrice"></div>
       </div>
-      <div style="display:flex; gap:10px;">
-        <div class="form-group" style="flex:1"><label>كمية المحل</label><input type="number" id="gShopQty" value="0"></div>
-        <div class="form-group" style="flex:1"><label>كمية المخزن</label><input type="number" id="gStoreQty" value="0"></div>
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1"><label>كمية المحل</label><input type="number" id="mShopQty" value="0"></div>
+        <div class="form-group" style="flex:1"><label>كمية المخزن</label><input type="number" id="mStoreQty" value="0"></div>
       </div>
       <div class="form-group">
         <label>الباركود</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="gBarcode">
-          <button class="btn btn-outline btn-sm" onclick="generateAutoBarcode()"><i class="fa-solid fa-wand-magic-sparkles"></i> توليد</button>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="mBarcode">
+          <button class="btn btn-outline btn-sm" onclick="generateBarcode()">توليد</button>
         </div>
       </div>
-      <div class="form-group"><label>ملاحظات</label><textarea id="gNotes" rows="2"></textarea></div>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn btn-primary" style="flex:1" onclick="saveNewGood()">حفظ السلعة</button>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn btn-primary" style="flex:1" onclick="saveProduct()">حفظ السلعة</button>
         <button class="btn btn-outline" onclick="closeModal('addGoodModal')">إلغاء</button>
       </div>
     </div>
   </div>
 
-  <!-- ✏️ 6. نافذة تعديل منتج من المخزون -->
-  <div class="modal" id="editProductModal">
+  <!-- ✏️ تعديل ونقل كمية -->
+  <div class="modal" id="editModal">
     <div class="modal-content">
-      <h3>تعديل بيانات المنتج</h3>
-      <input type="hidden" id="editPId">
-      <div class="form-group"><label>اسم المنتج</label><input type="text" id="editPName"></div>
-      <div style="display:flex; gap:10px;">
-        <div class="form-group" style="flex:1"><label>سعر الشراء</label><input type="number" id="editPBuyPrice"></div>
-        <div class="form-group" style="flex:1"><label>سعر البيع</label><input type="number" id="editPSellPrice"></div>
+      <h3 style="margin-bottom:12px;">إدارة المنتج والتعديل</h3>
+      <input type="hidden" id="editId">
+      <div class="form-group"><label>اسم السلعة</label><input type="text" id="editName"></div>
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1"><label>كمية المحل</label><input type="number" id="editShopQty"></div>
+        <div class="form-group" style="flex:1"><label>كمية المخزن</label><input type="number" id="editStoreQty"></div>
       </div>
-      <div style="display:flex; gap:10px;">
-        <div class="form-group" style="flex:1"><label>كمية المحل</label><input type="number" id="editPShopQty"></div>
-        <div class="form-group" style="flex:1"><label>كمية المخزن</label><input type="number" id="editPStoreQty"></div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn btn-primary" style="flex:1" onclick="saveEdit()">حفظ التعديل</button>
+        <button class="btn btn-danger" onclick="deleteProd()">حذف</button>
       </div>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn btn-primary" style="flex:1" onclick="saveProductEdit()">تحديث</button>
-        <button class="btn btn-outline" onclick="closeModal('editProductModal')">إلغاء</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 🚚 7. نافذة نقل كمية بين المحل والمخزن -->
-  <div class="modal" id="transferModal">
-    <div class="modal-content">
-      <h3>نقل كميات في المخزون</h3>
-      <input type="hidden" id="transPId">
-      <div class="form-group"><label>المنتج</label><input type="text" id="transPName" readonly></div>
-      <div class="form-group"><label>اتجاه النقل</label>
-        <select id="transDirection">
-          <option value="store_to_shop">من المخزن إلى المحل 🚚</option>
-          <option value="shop_to_store">من المحل إلى المخزن 📦</option>
-        </select>
-      </div>
-      <div class="form-group"><label>الكمية المراد نقلها</label><input type="number" id="transQty" value="1" min="1"></div>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn btn-primary" style="flex:1" onclick="confirmTransfer()">تأكيد النقل</button>
-        <button class="btn btn-outline" onclick="closeModal('transferModal')">إلغاء</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ℹ️ 8. نافذة تفاصيل المنتج -->
-  <div class="modal" id="productDetailsModal">
-    <div class="modal-content">
-      <h3 id="detailPName"></h3>
-      <hr style="margin:10px 0; border:none; border-top:1px solid var(--border)">
-      <p style="margin-bottom:6px;">النوع: <b id="detailPCat"></b></p>
-      <p style="margin-bottom:6px;">سعر البيع: <b id="detailPSell"></b> د.ج</p>
-      <p style="margin-bottom:6px;">في المحل: <b id="detailPShop"></b> قطعة</p>
-      <p style="margin-bottom:6px;">في المخزن: <b id="detailPStore"></b> قطعة</p>
-      <p style="margin-bottom:6px;">الباركود: <b id="detailPBarcode"></b></p>
-      <button class="btn btn-outline" style="width:100%; margin-top:15px;" onclick="closeModal('productDetailsModal')">إغلاق</button>
+      <button class="btn btn-outline" style="width:100%; margin-top:8px;" onclick="closeModal('editModal')">إغلاق</button>
     </div>
   </div>
 
   <div id="toast">تمت العملية بنجاح</div>
 
   <script>
-    // System Global State
-    let appData = {
-      inventory: [],
-      movements: [],
-      categories: ["ألبسة", "إلكترونيات", "أغذية", "عام"]
-    };
-
-    let currentUser = { name: "المدير", role: "admin" };
+    let db = { inventory: [], movements: [] };
     let html5QrcodeScanner = null;
-    let myChart = null;
 
     window.onload = function() {
-      const local = localStorage.getItem('erp_app_data');
-      if (local) appData = JSON.parse(local);
+      const local = localStorage.getItem('app_data_v2');
+      if (local) db = JSON.parse(local);
       loadSettings();
       renderAll();
     };
@@ -441,112 +240,54 @@
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg; toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+      setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    // Authentication Logic
-    function doLogin() {
-      const u = document.getElementById('loginUser').value;
-      const r = document.getElementById('loginRole').value;
-      currentUser = { name: u || "مستخدم", role: r };
-      document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('userBadge').innerText = `مرحباً: ${currentUser.name} (${r === 'admin' ? 'مدير' : 'موظف'})`;
-      
-      // تطبيق حظر الصلاحيات للموظف
-      if (r === 'employee') {
-        document.getElementById('menuSettings').style.display = 'none';
-      } else {
-        document.getElementById('menuSettings').style.display = 'block';
-      }
-      showToast('تم تسجيل الدخول بنجاح');
-    }
-
-    function logout() {
-      document.getElementById('loginOverlay').style.display = 'flex';
-    }
-
-    // Navigation & UI
-    function navigate(secId) {
-      document.querySelectorAll('.page-sec').forEach(s => s.style.display = 'none');
-      document.getElementById('sec-' + secId).style.display = 'block';
-      document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-
-      if (window.innerWidth <= 768) document.getElementById('appSidebar').classList.remove('open');
-      if (secId === 'dashboard') updateDashboardChart();
-    }
-
-    function toggleSidebar() { document.getElementById('appSidebar').classList.toggle('open'); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
 
+    function switchTab(tabId, elem) {
+      document.querySelectorAll('.page-sec').forEach(s => s.style.display = 'none');
+      document.getElementById('sec-' + tabId).style.display = 'block';
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      elem.classList.add('active');
+    }
+
     function saveLocal() {
-      localStorage.setItem('erp_app_data', JSON.stringify(appData));
+      localStorage.setItem('app_data_v2', JSON.stringify(db));
       renderAll();
     }
 
     function renderAll() {
-      renderDashboard();
-      renderPOSList();
-      renderGoodsTable();
-      renderStockTable();
-      renderMovementsTable();
-      renderCategoriesTable();
-      renderReportsTable();
+      renderPOS();
+      renderStock();
+      renderReports();
     }
 
-    // Dashboard
-    function renderDashboard() {
-      const totalItems = appData.inventory.length;
-      let totalQty = 0, lowQty = 0, zeroQty = 0;
-
-      appData.inventory.forEach(p => {
-        const tot = (p.shopQty + p.storeQty);
-        totalQty += tot;
-        if (tot === 0) zeroQty++;
-        else if (tot <= (p.minQty || 3)) lowQty++;
-      });
-
-      document.getElementById('dashTotalItems').innerText = totalItems;
-      document.getElementById('dashTotalQty').innerText = totalQty;
-      document.getElementById('dashLowQty').innerText = lowQty;
-      document.getElementById('dashZeroQty').innerText = zeroQty;
-
-      // Last 5 Movements
-      const last5 = appData.movements.slice(0, 5);
-      document.getElementById('dashLastMovements').innerHTML = last5.map(m => `
-        <tr><td><b>${m.productName}</b></td><td>${m.type}</td><td>${m.qty}</td><td>${m.reason}</td></tr>
-      `).join('');
-    }
-
-    // POS Vertical List Rendering
-    function renderPOSList() {
-      const query = document.getElementById('posSearchInput').value.toLowerCase();
-      const container = document.getElementById('posListContainer');
-
-      const filtered = appData.inventory.filter(p => p.name.toLowerCase().includes(query) || (p.barcode && p.barcode.includes(query)));
+    function renderPOS() {
+      const query = document.getElementById('posSearch').value.toLowerCase();
+      const container = document.getElementById('posList');
+      const filtered = db.inventory.filter(p => p.name.toLowerCase().includes(query) || (p.barcode && p.barcode.includes(query)));
 
       container.innerHTML = filtered.map(p => `
-        <div class="pos-item">
-          <div onclick="showProductDetails('${p.id}')">
+        <div class="list-item">
+          <div>
             <div style="font-weight:700;">${p.name}</div>
-            <div style="font-size:0.8rem; color:var(--text-muted);">المحل: ${p.shopQty} | المخزن: ${p.storeQty}</div>
+            <small style="color:var(--text-muted)">المحل: ${p.shopQty} | المخزن: ${p.storeQty}</small>
           </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-weight:800; color:var(--primary);">${p.sellPrice} د.ج</span>
-            <button class="btn btn-success btn-sm" onclick="quickSell('${p.id}')" ${p.shopQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>
-              <i class="fa-solid fa-cart-plus"></i> بيع
-            </button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b style="color:var(--primary);">${p.sellPrice} د.ج</b>
+            <button class="btn btn-success btn-sm" onclick="makeSale('${p.id}')" ${p.shopQty <= 0 ? 'disabled style="opacity:0.4"' : ''}>بيع</button>
           </div>
         </div>
       `).join('');
     }
 
-    function quickSell(id) {
-      const p = appData.inventory.find(item => item.id === id);
+    function makeSale(id) {
+      let p = db.inventory.find(item => item.id === id);
       if (p && p.shopQty > 0) {
         p.shopQty--;
         const now = new Date();
-        const move = {
+        db.movements.unshift({
           id: Date.now().toString(),
           date: now.toISOString().split('T')[0],
           time: now.toTimeString().split(' ')[0].substring(0, 5),
@@ -557,293 +298,162 @@
           buyPrice: p.buyPrice,
           sellPrice: p.sellPrice,
           reason: "بيع من نقطة البيع",
-          user: currentUser.name
-        };
-        appData.movements.unshift(move);
+          user: "المدير"
+        });
         saveLocal();
         showToast(`تم بيع 1x (${p.name})`);
       }
     }
 
-    // Barcode Generator
-    function generateAutoBarcode() {
-      document.getElementById('gBarcode').value = 'BC' + Math.floor(100000 + Math.random() * 900000);
-    }
-
-    // Camera Barcode Scanner Integration
-    function openCameraScanner() {
-      openModal('cameraModal');
-      html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
-      html5QrcodeScanner.render((decodedText) => {
-        document.getElementById('posSearchInput').value = decodedText;
-        renderPOSList();
-        closeCameraScanner();
-        showToast("تم التعرف على الباركود: " + decodedText);
-      });
-    }
-
-    function closeCameraScanner() {
-      if (html5QrcodeScanner) html5QrcodeScanner.clear();
-      closeModal('cameraModal');
-    }
-
-    // Goods Management
-    function openAddGoodModal() {
-      const select = document.getElementById('gCategory');
-      select.innerHTML = appData.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-      openModal('addGoodModal');
-    }
-
-    function saveNewGood() {
-      const name = document.getElementById('gName').value.trim();
-      if (!name) return alert('اسم المنتج مطلوب');
-
-      const pId = 'PRD-' + Date.now().toString().slice(-5);
-      const buyP = parseFloat(document.getElementById('gBuyPrice').value) || 0;
-      const sellP = parseFloat(document.getElementById('gSellPrice').value) || 0;
-      const sQty = parseInt(document.getElementById('gShopQty').value) || 0;
-      const stQty = parseInt(document.getElementById('gStoreQty').value) || 0;
-
-      const newP = {
-        id: pId,
-        name: name,
-        category: document.getElementById('gCategory').value,
-        buyPrice: buyP,
-        sellPrice: sellP,
-        shopQty: sQty,
-        storeQty: stQty,
-        minQty: 3,
-        barcode: document.getElementById('gBarcode').value,
-        lastUpdate: new Date().toISOString().split('T')[0],
-        notes: document.getElementById('gNotes').value
-      };
-
-      appData.inventory.push(newP);
-
-      // إضافة حركة تلقائية
-      appData.movements.unshift({
-        id: Date.now().toString(),
-        date: new Date().toISOString().split('T')[0],
-        time: new Date().toTimeString().split(' ')[0].substring(0, 5),
-        productName: name,
-        type: "إضافة منتج جديد",
-        qty: sQty + stQty,
-        balanceAfter: sQty + stQty,
-        buyPrice: buyP, sellPrice: sellP,
-        reason: "إدخال سلعة جديدة للمخزون",
-        user: currentUser.name
-      });
-
-      saveLocal();
-      closeModal('addGoodModal');
-      showToast('تم حفظ المنتج بنجاح');
-    }
-
-    function renderGoodsTable() {
-      document.getElementById('goodsTableBody').innerHTML = appData.inventory.map(p => `
-        <tr>
-          <td>${p.id}</td><td>${p.lastUpdate}</td><td><b>${p.name}</b></td><td>${p.category}</td>
-          <td>${p.sellPrice} د.ج</td><td>${p.shopQty + p.storeQty}</td><td>${p.notes || '-'}</td>
-        </tr>
-      `).join('');
-    }
-
-    // Stock Management Table & Actions
-    function renderStockTable() {
-      document.getElementById('stockTableBody').innerHTML = appData.inventory.map(p => {
+    function renderStock() {
+      const container = document.getElementById('stockList');
+      container.innerHTML = db.inventory.map(p => {
         const tot = p.shopQty + p.storeQty;
-        let badgeClass = 'badge-success'; let badgeText = 'ممتاز';
-        if (tot === 0) { badgeClass = 'badge-danger'; badgeText = 'منتهي'; }
-        else if (tot <= p.minQty) { badgeClass = 'badge-warning'; badgeText = 'منخفض'; }
-
         return `
-          <tr>
-            <td><b>${p.name}</b></td><td>${p.category}</td>
-            <td><b style="color:var(--primary)">${p.shopQty}</b></td><td>${p.storeQty}</td><td><b>${tot}</b></td>
-            <td>${p.sellPrice} د.ج</td>
-            <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-            <td>
-              <button class="btn btn-outline btn-sm" onclick="openEditProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-outline btn-sm" onclick="openTransferModal('${p.id}')"><i class="fa-solid fa-truck-ramp-box"></i> نقل</button>
-              ${currentUser.role === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
-            </td>
-          </tr>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <b>${p.name}</b>
+              <span class="badge ${tot <= 3 ? 'badge-danger' : 'badge-success'}">${tot <= 3 ? 'منخفض' : 'متوفر'}</span>
+            </div>
+            <div style="margin:8px 0; font-size:0.85rem; color:var(--text-muted);">
+              المحل: <b>${p.shopQty}</b> | المخزن: <b>${p.storeQty}</b> | الشراء: ${p.buyPrice} | البيع: ${p.sellPrice}
+            </div>
+            <button class="btn btn-outline btn-sm" style="width:100%" onclick="openEdit('${p.id}')">تعديل ونقل الكمية</button>
+          </div>
         `;
       }).join('');
     }
 
-    function openEditProduct(id) {
-      if (currentUser.role !== 'admin') return alert('عذراً، التعديل خاص بالمدير فقط');
-      const p = appData.inventory.find(item => item.id === id);
-      if (p) {
-        document.getElementById('editPId').value = p.id;
-        document.getElementById('editPName').value = p.name;
-        document.getElementById('editPBuyPrice').value = p.buyPrice;
-        document.getElementById('editPSellPrice').value = p.sellPrice;
-        document.getElementById('editPShopQty').value = p.shopQty;
-        document.getElementById('editPStoreQty').value = p.storeQty;
-        openModal('editProductModal');
-      }
+    function generateBarcode() {
+      document.getElementById('mBarcode').value = '84' + Math.floor(1000000 + Math.random() * 9000000);
     }
 
-    function saveProductEdit() {
-      const id = document.getElementById('editPId').value;
-      const p = appData.inventory.find(item => item.id === id);
-      if (p) {
-        p.name = document.getElementById('editPName').value;
-        p.buyPrice = parseFloat(document.getElementById('editPBuyPrice').value) || 0;
-        p.sellPrice = parseFloat(document.getElementById('editPSellPrice').value) || 0;
-        p.shopQty = parseInt(document.getElementById('editPShopQty').value) || 0;
-        p.storeQty = parseInt(document.getElementById('editPStoreQty').value) || 0;
-        saveLocal();
-        closeModal('editProductModal');
-        showToast('تم تحديث البيانات');
-      }
-    }
+    function saveProduct() {
+      const name = document.getElementById('mName').value.trim();
+      if (!name) return alert('اسم السلعة مطلوب');
 
-    function deleteProduct(id) {
-      if (confirm('هل أنت متاكد من حذف هذا المنتج نهائياً؟')) {
-        appData.inventory = appData.inventory.filter(item => item.id !== id);
-        saveLocal();
-        showToast('تم حذف المنتج');
-      }
-    }
-
-    function openTransferModal(id) {
-      const p = appData.inventory.find(item => item.id === id);
-      if (p) {
-        document.getElementById('transPId').value = p.id;
-        document.getElementById('transPName').value = p.name;
-        openModal('transferModal');
-      }
-    }
-
-    function confirmTransfer() {
-      const id = document.getElementById('transPId').value;
-      const dir = document.getElementById('transDirection').value;
-      const qty = parseInt(document.getElementById('transQty').value) || 1;
-      const p = appData.inventory.find(item => item.id === id);
-
-      if (p) {
-        if (dir === 'store_to_shop' && p.storeQty >= qty) {
-          p.storeQty -= qty; p.shopQty += qty;
-        } else if (dir === 'shop_to_store' && p.shopQty >= qty) {
-          p.shopQty -= qty; p.storeQty += qty;
-        } else {
-          return alert('الكمية المراد نقلها غير متاحة!');
-        }
-
-        appData.movements.unshift({
-          id: Date.now().toString(), date: new Date().toISOString().split('T')[0],
-          time: new Date().toTimeString().split(' ')[0].substring(0, 5),
-          productName: p.name, type: "نقل كمية", qty: qty, balanceAfter: p.shopQty + p.storeQty,
-          buyPrice: p.buyPrice, sellPrice: p.sellPrice, reason: dir === 'store_to_shop' ? 'نقل للمحل' : 'نقل للمخزن',
-          user: currentUser.name
-        });
-
-        saveLocal();
-        closeModal('transferModal');
-        showToast('تم النقل بنجاح');
-      }
-    }
-
-    function showProductDetails(id) {
-      const p = appData.inventory.find(item => item.id === id);
-      if (p) {
-        document.getElementById('detailPName').innerText = p.name;
-        document.getElementById('detailPCat').innerText = p.category;
-        document.getElementById('detailPSell').innerText = p.sellPrice;
-        document.getElementById('detailPShop').innerText = p.shopQty;
-        document.getElementById('detailPStore').innerText = p.storeQty;
-        document.getElementById('detailPBarcode').innerText = p.barcode || '-';
-        openModal('productDetailsModal');
-      }
-    }
-
-    // Movements Table
-    function renderMovementsTable() {
-      document.getElementById('movementsTableBody').innerHTML = appData.movements.map(m => `
-        <tr>
-          <td>#${m.id.slice(-4)}</td><td>${m.date} | ${m.time}</td><td><b>${m.productName}</b></td>
-          <td>${m.type}</td><td><b>${m.qty}</b></td><td>${m.balanceAfter}</td><td>${m.reason}</td><td>${m.user}</td>
-        </tr>
-      `).join('');
-    }
-
-    // Categories Table
-    function renderCategoriesTable() {
-      document.getElementById('catsTableBody').innerHTML = appData.categories.map(c => {
-        const count = appData.inventory.filter(p => p.category === c).length;
-        return `<tr><td><b>${c}</b></td><td>${count} منتجات</td><td>-</td></tr>`;
-      }).join('');
-    }
-
-    // Reports (Classified Daily Sessions)
-    function renderReportsTable() {
-      const days = {};
-      appData.movements.forEach(m => {
-        if (m.type === "بيع قطعة") {
-          if (!days[m.date]) days[m.date] = { count: 0, revenue: 0, profit: 0 };
-          days[m.date].count += m.qty;
-          days[m.date].revenue += (m.sellPrice * m.qty);
-          days[m.date].profit += ((m.sellPrice - m.buyPrice) * m.qty);
-        }
+      db.inventory.push({
+        id: 'P-' + Date.now().toString().slice(-5),
+        name: name,
+        category: document.getElementById('mCategory').value,
+        buyPrice: parseFloat(document.getElementById('mBuyPrice').value) || 0,
+        sellPrice: parseFloat(document.getElementById('mSellPrice').value) || 0,
+        shopQty: parseInt(document.getElementById('mShopQty').value) || 0,
+        storeQty: parseInt(document.getElementById('mStoreQty').value) || 0,
+        minQty: 3,
+        barcode: document.getElementById('mBarcode').value
       });
 
-      document.getElementById('reportsDailyTableBody').innerHTML = Object.keys(days).map(d => `
-        <tr>
-          <td><b>${d}</b></td><td>${days[d].count} عملية</td>
-          <td><b>${days[d].revenue} د.ج</b></td><td style="color:var(--success); font-weight:bold;">+${days[d].profit} د.ج</td>
-        </tr>
-      `).join('');
+      saveLocal();
+      closeModal('addGoodModal');
+      showToast('تمت إضافة المنتج');
     }
 
-    // Chart.js Update
-    function updateDashboardChart() {
-      const ctx = document.getElementById('dashChart').getContext('2d');
-      if (myChart) myChart.destroy();
-      myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
-          datasets: [{ label: 'المبيعات', data: [12, 19, 8, 15, 22, 30, 25], borderColor: '#2563eb', fill: false }]
-        },
-        options: { responsive: true }
+    function openEdit(id) {
+      let p = db.inventory.find(item => item.id === id);
+      if (p) {
+        document.getElementById('editId').value = p.id;
+        document.getElementById('editName').value = p.name;
+        document.getElementById('editShopQty').value = p.shopQty;
+        document.getElementById('editStoreQty').value = p.storeQty;
+        openModal('editModal');
+      }
+    }
+
+    function saveEdit() {
+      let id = document.getElementById('editId').value;
+      let p = db.inventory.find(item => item.id === id);
+      if (p) {
+        p.name = document.getElementById('editName').value;
+        p.shopQty = parseInt(document.getElementById('editShopQty').value) || 0;
+        p.storeQty = parseInt(document.getElementById('editStoreQty').value) || 0;
+        saveLocal();
+        closeModal('editModal');
+        showToast('تم التعديل بنجاح');
+      }
+    }
+
+    function deleteProd() {
+      if (confirm('هل تريد الحذف؟')) {
+        let id = document.getElementById('editId').value;
+        db.inventory = db.inventory.filter(i => i.id !== id);
+        saveLocal();
+        closeModal('editModal');
+        showToast('تم الحذف');
+      }
+    }
+
+    function startCameraScanner() {
+      openModal('cameraModal');
+      html5QrcodeScanner = new Html5QrcodeScanner("cameraReader", { fps: 10, qrbox: 220 });
+      html5QrcodeScanner.render((text) => {
+        document.getElementById('posSearch').value = text;
+        renderPOS();
+        stopCameraScanner();
+        showToast("باركود: " + text);
       });
     }
 
-    // Modals & Helpers
+    function stopCameraScanner() {
+      if (html5QrcodeScanner) html5QrcodeScanner.clear();
+      closeModal('cameraModal');
+    }
+
+    function renderReports() {
+      const today = new Date().toISOString().split('T')[0];
+      let salesSum = 0, profitSum = 0;
+
+      const salesToday = db.movements.filter(m => m.date === today && m.type === "بيع قطعة");
+      salesToday.forEach(s => {
+        salesSum += s.sellPrice;
+        profitSum += (s.sellPrice - s.buyPrice);
+      });
+
+      document.getElementById('todaySalesVal').innerText = salesSum + ' د.ج';
+      document.getElementById('todayProfitVal').innerText = profitSum + ' د.ج';
+
+      document.getElementById('dailySalesHistory').innerHTML = salesToday.map(s => `
+        <div class="list-item">
+          <div><b>${s.productName}</b><br><small style="color:var(--text-muted);">${s.time}</small></div>
+          <b style="color:var(--success)">+${s.sellPrice} د.ج</b>
+        </div>
+      `).join('');
+    }
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function saveSettings() {
-      localStorage.setItem('erp_shop_name', document.getElementById('settingShopName').value);
-      localStorage.setItem('erp_api_url', document.getElementById('settingApiUrl').value);
-      showToast('تم حفظ الإعدادات');
-      syncWithCloud();
+      localStorage.setItem('app_shop_title', document.getElementById('shopNameInput').value);
+      localStorage.setItem('app_api_url', document.getElementById('apiUrlInput').value);
+      showToast('تم الحفظ');
+      syncCloud();
     }
 
     function loadSettings() {
-      const url = localStorage.getItem('erp_api_url');
-      if (url) document.getElementById('settingApiUrl').value = url;
+      const url = localStorage.getItem('app_api_url');
+      if (url) document.getElementById('apiUrlInput').value = url;
+      const title = localStorage.getItem('app_shop_title');
+      if (title) document.getElementById('appShopTitle').innerText = title;
     }
 
-    function exportDataCSV() {
-      let csv = "ID,Name,Category,ShopQty,StoreQty,SellPrice\n";
-      appData.inventory.forEach(p => { csv += `${p.id},${p.name},${p.category},${p.shopQty},${p.storeQty},${p.sellPrice}\n`; });
-      const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-      a.download = `inventory_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    }
+    // المزامنة السحابية المصححة لتفادي حظر CORS
+    async function syncCloud() {
+      const url = localStorage.getItem('app_api_url');
+      if (!url) return showToast('ادخل رابط الـ API أولاً');
+      showToast('جاري المزامنة... 🔄');
 
-    // Sync Cloud Engine
-    async function syncWithCloud() {
-      const url = localStorage.getItem('erp_api_url');
-      if (!url) return;
-      showToast('جاري المزامنة مع Google Sheets... 🔄');
       try {
-        await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "SYNC_ALL", ...appData }) });
-        showToast('تمت المزامنة بنجاح 🟢');
-      } catch (e) { showToast('خطأ أثناء المزامنة السحابية'); }
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: "SYNC_ALL", ...db })
+        });
+        showToast('تم حفظ البيانات في الشيت 🟢');
+      } catch (e) {
+        showToast('خطأ أثناء المزامنة');
+      }
     }
   </script>
 </body>
